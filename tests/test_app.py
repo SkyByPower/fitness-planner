@@ -118,3 +118,32 @@ def test_api_logs(client):
     assert client.get(f"/api/logs/{log_id}", headers=basic("admin", "admin123")).status_code == 200
     assert client.delete(f"/api/logs/{log_id}", headers=basic()).status_code == 200
     assert client.get(f"/api/logs/{log_id}", headers=basic()).status_code == 404
+
+
+def test_language_switch(client):
+    login(client)
+    assert "Жаттығу жоспарлары" in client.get("/workouts").get_data(as_text=True)
+    client.get("/lang/ru")
+    text = client.get("/workouts").get_data(as_text=True)
+    assert "Планы тренировок" in text and 'lang="ru"' in text
+    client.get("/auth/logout")
+    r = client.post("/auth/register", data={"username": "x", "email": "bad"})
+    assert "Некорректный email" in r.get_data(as_text=True)
+    client.get("/lang/kk")
+    login(client)
+    assert "Жаттығу жоспарлары" in client.get("/workouts").get_data(as_text=True)
+
+
+def test_all_template_strings_translated():
+    import pathlib
+    import re
+
+    from app.i18n import RU
+
+    root = pathlib.Path(__file__).parent.parent / "app"
+    keys = set()
+    for path in (root / "templates").rglob("*.html"):
+        keys |= set(re.findall(r"_\('([^']+)'\)", path.read_text(encoding="utf-8")))
+    for path in root.glob("*.py"):
+        keys |= set(re.findall(r"_l?\(\"([^\"]+)\"", path.read_text(encoding="utf-8")))
+    assert not sorted(k for k in keys if k not in RU and k != "Email")

@@ -1,38 +1,41 @@
 {% extends "base.html" %}
-{% from "_macros.html" import delete_button %}
-{% block title %}Админ панель{% endblock %}
+{% from "_macros.html" import delete_button, page_head %}
+{% block title %}{{ _('Админ панель') }}{% endblock %}
 {% block content %}
-<h2 class="mb-4"><i class="bi bi-shield-lock"></i> Админ панель</h2>
+{{ page_head(_('Басқару'), _('Админ панель'), _('Жүйе статистикасы және қолданушылар')) }}
 <div class="row g-3 mb-4">
-  {% for label, value in [('Қолданушылар', stats.users), ('Жоспарлар', stats.workouts), ('Жаттығулар', stats.exercises), ('Журнал жазбалары', stats.logs)] %}
-  <div class="col-6 col-lg-3"><div class="card stat-card border-0 shadow-sm"><div class="card-body">
-    <div class="stat-value">{{ value }}</div><div class="text-muted small">{{ label }}</div>
-  </div></div></div>
+  {% for label, value, icon, c in [(_('Қолданушылар'), stats.users, 'people', 'c1'), (_('Жоспарлар'), stats.workouts, 'clipboard2-pulse', 'c2'),
+                                   (_('Жаттығулар'), stats.exercises, 'person-arms-up', 'c3'), (_('Журнал жазбалары'), stats.logs, 'journal-check', 'c4')] %}
+  <div class="col-6 col-lg-3"><div class="card-soft stat-tile">
+    <div class="stat-icon {{ c }}"><i class="bi bi-{{ icon }}"></i></div>
+    <div><div class="stat-value">{{ value }}</div><div class="stat-label">{{ label }}</div></div>
+  </div></div>
   {% endfor %}
 </div>
 
-<div class="card border-0 shadow-sm">
-  <div class="card-header bg-white fw-semibold">Қолданушылар</div>
+<div class="card-soft overflow-hidden">
+  <div class="card-header"><span class="section-title"><i class="bi bi-people"></i> {{ _('Қолданушылар') }}</span></div>
   <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead class="table-light"><tr><th>#</th><th>Аты</th><th>Email</th><th>Телефон</th><th>Жоспар</th><th>Рөл</th><th></th></tr></thead>
+    <table class="table table-modern">
+      <thead><tr><th>{{ _('Қолданушы') }}</th><th>Email</th><th>{{ _('Телефон') }}</th><th>{{ _('Жоспарлар') }}</th><th>{{ _('Рөл') }}</th><th></th></tr></thead>
       <tbody>
       {% for u in users %}
       <tr>
-        <td>{{ u.id }}</td><td>{{ u.username }}</td><td>{{ u.email }}</td><td>{{ u.phone or '—' }}</td><td>{{ u.workouts.count() }}</td>
+        <td><div class="d-flex align-items-center gap-2"><span class="avatar">{{ u.username[0] }}</span><span class="fw-semibold">{{ u.username }}</span></div></td>
+        <td>{{ u.email }}</td><td class="num">{{ u.phone or '—' }}</td><td class="num">{{ u.workouts.count() }}</td>
         <td>
-          {% if u.id == current_user.id %}<span class="badge bg-warning text-dark">{{ u.role }}</span> (сіз)
+          {% if u.id == current_user.id %}<span class="badge diff-medium">{{ u.role }}</span> <span class="small text-muted">({{ _('сіз') }})</span>
           {% else %}
           <form method="post" action="{{ url_for('admin.change_role', user_id=u.id) }}" class="d-flex gap-1">
             {{ role_form.hidden_tag() }}
             <select name="role" class="form-select form-select-sm" style="width:auto">
               {% for r in ['user', 'admin'] %}<option value="{{ r }}" {{ 'selected' if r == u.role }}>{{ r }}</option>{% endfor %}
             </select>
-            <button class="btn btn-sm btn-outline-primary">OK</button>
+            <button class="btn btn-sm btn-ghost">OK</button>
           </form>
           {% endif %}
         </td>
-        <td>{% if u.id != current_user.id %}{{ delete_button(url_for('admin.delete_user', user_id=u.id), label='') }}{% endif %}</td>
+        <td class="text-end">{% if u.id != current_user.id %}{{ delete_button(url_for('admin.delete_user', user_id=u.id)) }}{% endif %}</td>
       </tr>
       {% endfor %}
       </tbody>

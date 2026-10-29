@@ -1,29 +1,29 @@
 {% extends "base.html" %}
-{% from "_macros.html" import field %}
+{% from "_macros.html" import field, page_head %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-lg-7">
-    <div class="card border-0 shadow-sm"><div class="card-body p-4">
-      <h3 class="mb-3">{{ title }}</h3>
-      <form method="post" novalidate>
-        {{ form.hidden_tag() }}
-        <div class="row">
-          {{ field(form.workout_id, 'col-md-7') }}
-          {{ field(form.date, 'col-md-5') }}
-        </div>
-        {{ field(form.exercise_id) }}
-        <div class="row">
-          {{ field(form.sets, 'col-6 col-md-3') }}
-          {{ field(form.reps, 'col-6 col-md-3') }}
-          {{ field(form.weight_kg, 'col-6 col-md-3') }}
-          {{ field(form.duration_min, 'col-6 col-md-3') }}
-        </div>
-        {{ field(form.notes) }}
-        {{ form.submit(class='btn btn-brand') }}
-        <a href="{{ url_for('main.logs') }}" class="btn btn-outline-secondary">Бас тарту</a>
-      </form>
-    </div></div>
+  <div class="col-lg-8">
+    {{ page_head(_('Прогресс'), title) }}
+    <form method="post" novalidate class="card-soft p-4 p-md-5">
+      {{ form.hidden_tag() }}
+      <div class="row">
+        {{ field(form.workout_id, 'col-md-7') }}
+        {{ field(form.date, 'col-md-5') }}
+      </div>
+      {{ field(form.exercise_id) }}
+      <div class="row">
+        {{ field(form.sets, 'col-6 col-md-3') }}
+        {{ field(form.reps, 'col-6 col-md-3') }}
+        {{ field(form.weight_kg, 'col-6 col-md-3') }}
+        {{ field(form.duration_min, 'col-6 col-md-3') }}
+      </div>
+      {{ field(form.notes) }}
+      <div class="d-flex gap-2 mt-2">
+        {{ form.submit(class='btn btn-brand px-4') }}
+        <a href="{{ url_for('main.logs') }}" class="btn btn-ghost">{{ _('Бас тарту') }}</a>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

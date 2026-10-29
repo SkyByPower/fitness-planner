@@ -2,11 +2,13 @@ import calendar
 from collections import defaultdict
 from datetime import date, timedelta
 
-from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import func, or_
 
 from . import db
+from .i18n import LANGUAGES, MONTHS, WEEKDAYS, WEEKDAYS_SHORT, get_locale
+from .i18n import gettext as _
 from .forms import ExerciseForm, LoginForm, LogForm, RegisterForm, RoleForm, WorkoutForm
 from .models import Exercise, Log, User, Workout
 from .utils import admin_required, delete_upload, save_upload
@@ -15,14 +17,20 @@ main_bp = Blueprint("main", __name__)
 auth_bp = Blueprint("auth", __name__)
 admin_bp = Blueprint("admin", __name__)
 
-MONTHS_KZ = ["", "Қаңтар", "Ақпан", "Наурыз", "Сәуір", "Мамыр", "Маусым",
-             "Шілде", "Тамыз", "Қыркүйек", "Қазан", "Қараша", "Желтоқсан"]
-WEEKDAYS_KZ = ["Дүйсенбі", "Сейсенбі", "Сәрсенбі", "Бейсенбі", "Жұма", "Сенбі", "Жексенбі"]
-
-
 @main_bp.app_context_processor
 def inject_helpers():
-    return {"WEEKDAYS_KZ": WEEKDAYS_KZ, "today": date.today()}
+    lang = get_locale()
+    return {"WEEKDAYS": WEEKDAYS[lang], "WEEKDAYS_SHORT": WEEKDAYS_SHORT[lang], "today": date.today(), "lang": lang, "LANGUAGES": LANGUAGES}
+
+
+@main_bp.route("/lang/<code>")
+def set_language(code):
+    if code in LANGUAGES:
+        session["lang"] = code
+    ref = request.referrer
+    if ref and ref.startswith(request.host_url):
+        return redirect(ref)
+    return redirect(url_for("main.index"))
 
 
 def get_own_or_404(model, obj_id):
@@ -45,7 +53,7 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash("Тіркелу сәтті өтті! Енді жүйеге кіріңіз.", "success")
+        flash(_("Тіркелу сәтті өтті! Енді жүйеге кіріңіз."), "success")
         return redirect(url_for("auth.login"))
     return render_template("auth/register.html", form=form)
 
@@ -59,12 +67,12 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user and user.check_password(form.password.data):
             login_user(user)
-            flash(f"Қош келдіңіз, {user.username}!", "success")
+            flash(_("Қош келдіңіз, {name}!", name=user.username), "success")
             next_url = request.args.get("next")
             if not next_url or not next_url.startswith("/") or next_url.startswith("//"):
                 next_url = url_for("main.dashboard")
             return redirect(next_url)
-        flash("Пайдаланушы аты немесе құпиясөз қате.", "danger")
+        flash(_("Пайдаланушы аты немесе құпиясөз қате."), "danger")
     return render_template("auth/login.html", form=form)
 
 
@@ -72,7 +80,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash("Жүйеден шықтыңыз.", "info")
+    flash(_("Жүйеден шықтыңыз."), "info")
     return redirect(url_for("main.index"))
 
 
@@ -94,6 +102,15 @@ def dashboard():
         .order_by(Workout.scheduled_date).limit(5).all()
     )
     recent_logs = current_user.logs.order_by(Log.date.desc(), Log.id.desc()).limit(5).all()
+
+    # Соңғы 7 күндегі белсенділік (минут) — шағын диаграмма үшін
+    days = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
+    rows = dict(
+        db.session.query(Log.date, func.coalesce(func.sum(Log.duration_min), 0))
+        .filter(Log.user_id == current_user.id, Log.date >= days[0]).group_by(Log.date).all()
+    )
+    peak = max(rows.values(), default=0) or 1
+    activity = [(d, rows.get(d, 0), round(rows.get(d, 0) / peak * 100)) for d in days]
     stats = {
         "workouts": current_user.workouts.count(),
         "logs": current_user.logs.count(),
@@ -101,7 +118,7 @@ def dashboard():
         "minutes": db.session.query(func.coalesce(func.sum(Log.duration_min), 0))
         .filter(Log.user_id == current_user.id).scalar(),
     }
-    return render_template("dashboard.html", upcoming=upcoming, recent_logs=recent_logs, stats=stats)
+    return render_template("dashboard.html", upcoming=upcoming, recent_logs=recent_logs, stats=stats, activity=activity)
 
 
 # --- Workouts: толық CRUD + іздеу, сүзгі, сорттау, пагинация ---
@@ -147,9 +164,9 @@ def workout_create():
         db.session.add(workout)
         _fill_workout(workout, form)
         db.session.commit()
-        flash("Жоспар қосылды.", "success")
+        flash(_("Жоспар қосылды."), "success")
         return redirect(url_for("main.workout_detail", workout_id=workout.id))
-    return render_template("workouts/form.html", form=form, title="Жаңа жаттығу жоспары")
+    return render_template("workouts/form.html", form=form, title=_("Жаңа жаттығу жоспары"))
 
 
 @main_bp.route("/workouts/<int:workout_id>")
@@ -170,9 +187,9 @@ def workout_edit(workout_id):
     if form.validate_on_submit():
         _fill_workout(workout, form)
         db.session.commit()
-        flash("Жоспар жаңартылды.", "success")
+        flash(_("Жоспар жаңартылды."), "success")
         return redirect(url_for("main.workout_detail", workout_id=workout.id))
-    return render_template("workouts/form.html", form=form, title="Жоспарды өңдеу", workout=workout)
+    return render_template("workouts/form.html", form=form, title=_("Жоспарды өңдеу"), workout=workout)
 
 
 @main_bp.route("/workouts/<int:workout_id>/delete", methods=["POST"])
@@ -182,7 +199,7 @@ def workout_delete(workout_id):
     delete_upload(workout.attachment)
     db.session.delete(workout)
     db.session.commit()
-    flash("Жоспар өшірілді.", "info")
+    flash(_("Жоспар өшірілді."), "info")
     return redirect(url_for("main.workouts"))
 
 
@@ -222,9 +239,9 @@ def exercise_create():
         ex.image = save_upload(form.image.data)
         db.session.add(ex)
         db.session.commit()
-        flash("Жаттығу қосылды.", "success")
+        flash(_("Жаттығу қосылды."), "success")
         return redirect(url_for("main.exercises"))
-    return render_template("exercises/form.html", form=form, title="Жаңа жаттығу")
+    return render_template("exercises/form.html", form=form, title=_("Жаңа жаттығу"))
 
 
 @main_bp.route("/exercises/<int:exercise_id>/edit", methods=["GET", "POST"])
@@ -241,9 +258,9 @@ def exercise_edit(exercise_id):
             delete_upload(ex.image)
             ex.image = saved
         db.session.commit()
-        flash("Жаттығу жаңартылды.", "success")
+        flash(_("Жаттығу жаңартылды."), "success")
         return redirect(url_for("main.exercises"))
-    return render_template("exercises/form.html", form=form, title="Жаттығуды өңдеу", exercise=ex)
+    return render_template("exercises/form.html", form=form, title=_("Жаттығуды өңдеу"), exercise=ex)
 
 
 @main_bp.route("/exercises/<int:exercise_id>/delete", methods=["POST"])
@@ -254,7 +271,7 @@ def exercise_delete(exercise_id):
     delete_upload(ex.image)
     db.session.delete(ex)
     db.session.commit()
-    flash("Жаттығу өшірілді.", "info")
+    flash(_("Жаттығу өшірілді."), "info")
     return redirect(url_for("main.exercises"))
 
 
@@ -278,16 +295,16 @@ def log_create():
     if request.method == "GET":
         form.workout_id.data = request.args.get("workout_id", type=int)
     if not form.workout_id.choices:
-        flash("Алдымен жаттығу жоспарын құрыңыз.", "warning")
+        flash(_("Алдымен жаттығу жоспарын құрыңыз."), "warning")
         return redirect(url_for("main.workout_create"))
     if form.validate_on_submit():
         log = Log(user=current_user)
         _fill_log(log, form)
         db.session.add(log)
         db.session.commit()
-        flash("Жазба қосылды.", "success")
+        flash(_("Жазба қосылды."), "success")
         return redirect(url_for("main.logs"))
-    return render_template("logs/form.html", form=form, title="Жаңа жазба")
+    return render_template("logs/form.html", form=form, title=_("Жаңа жазба"))
 
 
 @main_bp.route("/logs/<int:log_id>/edit", methods=["GET", "POST"])
@@ -300,9 +317,9 @@ def log_edit(log_id):
     if form.validate_on_submit():
         _fill_log(log, form)
         db.session.commit()
-        flash("Жазба жаңартылды.", "success")
+        flash(_("Жазба жаңартылды."), "success")
         return redirect(url_for("main.logs"))
-    return render_template("logs/form.html", form=form, title="Жазбаны өңдеу")
+    return render_template("logs/form.html", form=form, title=_("Жазбаны өңдеу"))
 
 
 @main_bp.route("/logs/<int:log_id>/delete", methods=["POST"])
@@ -311,7 +328,7 @@ def log_delete(log_id):
     log = get_own_or_404(Log, log_id)
     db.session.delete(log)
     db.session.commit()
-    flash("Жазба өшірілді.", "info")
+    flash(_("Жазба өшірілді."), "info")
     return redirect(request.referrer or url_for("main.logs"))
 
 
@@ -355,7 +372,7 @@ def calendar_view():
     prev_month = (first - timedelta(days=1)).replace(day=1)
     next_month = last + timedelta(days=1)
     return render_template(
-        "calendar.html", entries=entries, month_name=f"{MONTHS_KZ[month]} {year}",
+        "calendar.html", entries=entries, month_name=f"{MONTHS[get_locale()][month]} {year}",
         prev_month=prev_month, next_month=next_month, show_empty=show_empty, year=year, month=month,
     )
 
@@ -381,11 +398,11 @@ def change_role(user_id):
     user = db.get_or_404(User, user_id)
     form = RoleForm()
     if user.id == current_user.id:
-        flash("Өз рөліңізді өзгерте алмайсыз.", "warning")
+        flash(_("Өз рөліңізді өзгерте алмайсыз."), "warning")
     elif form.validate_on_submit():
         user.role = form.role.data
         db.session.commit()
-        flash(f"{user.username} рөлі: {user.role}", "success")
+        flash(_("{name} рөлі: {role}", name=user.username, role=user.role), "success")
     return redirect(url_for("admin.panel"))
 
 
@@ -394,11 +411,11 @@ def change_role(user_id):
 def delete_user(user_id):
     user = db.get_or_404(User, user_id)
     if user.id == current_user.id:
-        flash("Өзіңізді өшіре алмайсыз.", "warning")
+        flash(_("Өзіңізді өшіре алмайсыз."), "warning")
     else:
         for w in user.workouts:
             delete_upload(w.attachment)
         db.session.delete(user)
         db.session.commit()
-        flash(f"{user.username} өшірілді.", "info")
+        flash(_("{name} өшірілді.", name=user.username), "info")
     return redirect(url_for("admin.panel"))

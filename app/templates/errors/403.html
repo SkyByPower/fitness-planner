@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block title %}403{% endblock %}
 {% block content %}
-<div class="text-center py-5">
-  <div class="error-code">403</div>
-  <i class="bi bi-shield-x display-4 text-brand"></i>
-  <h2 class="mt-2">Рұқсат жоқ</h2>
-  <p class="text-muted">Бұл бетті көруге құқығыңыз жоқ.</p>
-  <a href="{{ url_for('main.index') }}" class="btn btn-brand"><i class="bi bi-house"></i> Басты бетке</a>
+<div class="card-soft text-center py-5 px-3 my-4 mx-auto" style="max-width:640px">
+  <div class="error-code text-grad">403</div>
+  <i class="bi bi-shield-x display-5 text-muted"></i>
+  <h2 class="mt-3">{{ _('Рұқсат жоқ') }}</h2>
+  <p class="text-muted mb-4">{{ _('Бұл бетті көруге құқығыңыз жоқ.') }}</p>
+  <a href="{{ url_for('main.index') }}" class="btn btn-brand px-4"><i class="bi bi-house"></i> {{ _('Басты бетке') }}</a>
 </div>
 {% endblock %}

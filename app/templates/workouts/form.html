@@ -1,37 +1,37 @@
 {% extends "base.html" %}
-{% from "_macros.html" import field %}
+{% from "_macros.html" import field, page_head %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card border-0 shadow-sm"><div class="card-body p-4">
-      <h3 class="mb-3">{{ title }}</h3>
-      <form method="post" enctype="multipart/form-data" novalidate>
-        {{ form.hidden_tag() }}
-        {{ field(form.title) }}
-        {{ field(form.description) }}
-        <div class="row">
-          {{ field(form.scheduled_date, 'col-md-4') }}
-          {{ field(form.duration_min, 'col-md-4') }}
-          {{ field(form.difficulty, 'col-md-4') }}
+  <div class="col-lg-9">
+    {{ page_head(_('Жоспарлау'), title) }}
+    <form method="post" enctype="multipart/form-data" novalidate class="card-soft p-4 p-md-5">
+      {{ form.hidden_tag() }}
+      {{ field(form.title) }}
+      {{ field(form.description) }}
+      <div class="row">
+        {{ field(form.scheduled_date, 'col-md-4') }}
+        {{ field(form.duration_min, 'col-md-4') }}
+        {{ field(form.difficulty, 'col-md-4') }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">{{ form.exercises.label.text }}</label>
+        <div class="exercise-picker">
+          {% for sub in form.exercises %}
+          <div class="ex-option">{{ sub() }} {{ sub.label() }}</div>
+          {% else %}<span class="text-muted small">{{ _('Каталогта жаттығу жоқ.') }}</span>{% endfor %}
         </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">{{ form.exercises.label.text }}</label>
-          <div class="exercise-checks border rounded p-2">
-            {% for sub in form.exercises %}
-            <div class="form-check">{{ sub(class='form-check-input') }} {{ sub.label(class='form-check-label') }}</div>
-            {% else %}<span class="text-muted small">Каталогта жаттығу жоқ.</span>{% endfor %}
-          </div>
-        </div>
-        {{ field(form.attachment) }}
-        {% if workout and workout.attachment %}
-        <p class="small text-muted">Қазіргі файл: <a href="{{ url_for('static', filename='uploads/' ~ workout.attachment) }}" target="_blank">{{ workout.attachment }}</a> (жаңасын жүктесеңіз ауыстырылады)</p>
-        {% endif %}
-        <p class="small text-muted">Рұқсат етілген: PNG, JPG, GIF, WEBP, PDF · ең көбі 5 МБ</p>
-        {{ form.submit(class='btn btn-brand') }}
-        <a href="{{ url_for('main.workouts') }}" class="btn btn-outline-secondary">Бас тарту</a>
-      </form>
-    </div></div>
+      </div>
+      {{ field(form.attachment) }}
+      {% if workout and workout.attachment %}
+      <p class="small text-muted"><i class="bi bi-paperclip"></i> {{ _('Қазіргі файл') }}: <a href="{{ url_for('static', filename='uploads/' ~ workout.attachment) }}" target="_blank">{{ workout.attachment }}</a> ({{ _('жаңасын жүктесеңіз ауыстырылады') }})</p>
+      {% endif %}
+      <p class="small text-muted"><i class="bi bi-info-circle"></i> {{ _('Рұқсат етілген: PNG, JPG, GIF, WEBP, PDF · ең көбі 5 МБ') }}</p>
+      <div class="d-flex gap-2 mt-4">
+        {{ form.submit(class='btn btn-brand px-4') }}
+        <a href="{{ url_for('main.workouts') }}" class="btn btn-ghost">{{ _('Бас тарту') }}</a>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

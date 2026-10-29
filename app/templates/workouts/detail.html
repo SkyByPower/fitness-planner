@@ -2,53 +2,75 @@
 {% from "_macros.html" import delete_button, difficulty_badge %}
 {% block title %}{{ workout.title }}{% endblock %}
 {% block content %}
-<a href="{{ url_for('main.workouts') }}" class="small"><i class="bi bi-arrow-left"></i> Жоспарлар</a>
-<div class="d-flex justify-content-between align-items-start mt-2 mb-3 flex-wrap gap-2">
-  <div>
-    <h2 class="mb-1">{{ workout.title }} {{ difficulty_badge(workout) }}</h2>
-    <div class="text-muted"><i class="bi bi-calendar-event"></i> {{ workout.scheduled_date.strftime('%d.%m.%Y') }}
-      · <i class="bi bi-stopwatch"></i> {{ workout.duration_min }} мин · <i class="bi bi-person"></i> {{ workout.owner.username }}</div>
+<a href="{{ url_for('main.workouts') }}" class="small fw-semibold d-inline-block mb-3"><i class="bi bi-arrow-left"></i> {{ _('Жоспарлар') }}</a>
+
+<section class="photo-banner detail-banner mb-4" style="background-image:url('{{ workout.cover_url }}')">
+  <div class="w-100 d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div class="on-photo">
+      {{ difficulty_badge(workout) }}
+      <h1 class="mt-2 mb-2">{{ workout.title }}</h1>
+      <div class="meta-row">
+        <span><i class="bi bi-calendar3"></i> {{ workout.scheduled_date.strftime('%d.%m.%Y') }}</span>
+        <span><i class="bi bi-stopwatch"></i> {{ workout.duration_min }} {{ _('мин') }}</span>
+        <span><i class="bi bi-person"></i> {{ workout.owner.username }}</span>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('main.log_create', workout_id=workout.id) }}" class="btn btn-brand"><i class="bi bi-journal-plus"></i> {{ _('Журналға жазу') }}</a>
+      <a href="{{ url_for('main.workout_edit', workout_id=workout.id) }}" class="btn btn-light"><i class="bi bi-pencil"></i> {{ _('Өңдеу') }}</a>
+      {{ delete_button(url_for('main.workout_delete', workout_id=workout.id), label=_('Өшіру'), small=False) }}
+    </div>
   </div>
-  <div class="d-flex gap-1">
-    <a href="{{ url_for('main.log_create', workout_id=workout.id) }}" class="btn btn-brand btn-sm"><i class="bi bi-journal-plus"></i> Журналға жазу</a>
-    <a href="{{ url_for('main.workout_edit', workout_id=workout.id) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Өңдеу</a>
-    {{ delete_button(url_for('main.workout_delete', workout_id=workout.id)) }}
-  </div>
-</div>
+</section>
 
 <div class="row g-4">
-  <div class="col-lg-7">
-    {% if workout.description %}<p>{{ workout.description }}</p>{% endif %}
-    <h5>Жаттығулар</h5>
-    <ul class="list-group mb-4">
-      {% for e in workout.exercises %}
-      <li class="list-group-item d-flex justify-content-between"><span>{{ e.name }}</span><span class="badge bg-secondary">{{ e.muscle_group }}</span></li>
-      {% else %}<li class="list-group-item text-muted">Жаттығу таңдалмаған.</li>{% endfor %}
-    </ul>
+  <div class="col-lg-{{ 7 if workout.attachment else 12 }}">
+    {% if workout.description %}
+    <div class="card-soft p-4 mb-4"><div class="section-title mb-2"><i class="bi bi-text-paragraph"></i> {{ _('Сипаттама') }}</div><p class="mb-0">{{ workout.description }}</p></div>
+    {% endif %}
 
-    <h5>Журнал ({{ logs|length }})</h5>
-    <table class="table table-sm align-middle">
-      <thead><tr><th>Күні</th><th>Жаттығу</th><th>Сет×Қайт.</th><th>Салмақ</th><th>Мин</th></tr></thead>
-      <tbody>
-        {% for lg in logs %}
-        <tr><td>{{ lg.date.strftime('%d.%m') }}</td><td>{{ lg.exercise.name if lg.exercise else '—' }}</td>
-          <td>{{ lg.sets or '-' }}×{{ lg.reps or '-' }}</td><td>{{ lg.weight_kg|round(1) if lg.weight_kg else '-' }}</td><td>{{ lg.duration_min or '-' }}</td></tr>
-        {% else %}<tr><td colspan="5" class="text-muted">Жазба жоқ.</td></tr>{% endfor %}
-      </tbody>
-    </table>
+    <div class="section-title mb-3"><i class="bi bi-list-check"></i> {{ _('Жаттығулар') }} <span class="chip">{{ workout.exercises|length }}</span></div>
+    <div class="row g-2">
+      {% for e in workout.exercises %}
+      <div class="col-sm-6 {{ 'col-xl-4' if not workout.attachment }}">
+        <div class="ex-tile">
+          <img src="{{ e.image_url }}" class="thumb" alt="">
+          <div><div class="fw-bold">{{ e.name }}</div><span class="small text-muted">{{ _(e.muscle_group) }}</span></div>
+        </div>
+      </div>
+      {% else %}<div class="text-muted">{{ _('Жаттығу таңдалмаған.') }}</div>{% endfor %}
+    </div>
   </div>
+
+  {% if workout.attachment %}
   <div class="col-lg-5">
-    {% if workout.attachment %}
-    <div class="card border-0 shadow-sm"><div class="card-body">
-      <h6><i class="bi bi-paperclip"></i> Тіркелген файл</h6>
+    <div class="card-soft p-4">
+      <div class="section-title mb-3"><i class="bi bi-paperclip"></i> {{ _('Тіркелген файл') }}</div>
       {% set url = url_for('static', filename='uploads/' ~ workout.attachment) %}
       {% if workout.attachment_is_pdf %}
-        <a href="{{ url }}" target="_blank" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i> PDF ашу</a>
+        <a href="{{ url }}" target="_blank" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i> {{ _('PDF ашу') }}</a>
       {% else %}
-        <img src="{{ url }}" class="img-fluid rounded" alt="{{ workout.title }}">
+        <img src="{{ url }}" class="img-fluid rounded-4" alt="{{ workout.title }}">
       {% endif %}
-    </div></div>
-    {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="col-12">
+    <div class="card-soft overflow-hidden">
+      <div class="card-header"><span class="section-title"><i class="bi bi-journal-check"></i> {{ _('Журнал') }} <span class="chip">{{ logs|length }}</span></span></div>
+      <div class="table-responsive">
+        <table class="table table-modern">
+          <thead><tr><th>{{ _('Күні') }}</th><th>{{ _('Жаттығу') }}</th><th>{{ _('Сет×Қайт.') }}</th><th>{{ _('кг') }}</th><th>{{ _('мин') }}</th></tr></thead>
+          <tbody>
+            {% for lg in logs %}
+            <tr><td class="num">{{ lg.date.strftime('%d.%m') }}</td><td>{{ lg.exercise.name if lg.exercise else '—' }}</td>
+              <td class="num">{{ (lg.sets ~ '×' ~ (lg.reps or '-')) if lg.sets else '—' }}</td><td class="num">{{ lg.weight_kg|round(1) if lg.weight_kg else '-' }}</td><td class="num">{{ lg.duration_min or '-' }}</td></tr>
+            {% else %}<tr><td colspan="5" class="text-muted text-center py-4">{{ _('Жазба жоқ.') }}</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

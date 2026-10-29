@@ -1,62 +1,91 @@
 {% extends "base.html" %}
-{% from "_macros.html" import difficulty_badge %}
-{% block title %}Басты{% endblock %}
+{% from "_macros.html" import difficulty_badge, log_summary %}
+{% block title %}{{ _('Басты') }}{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-  <h2 class="mb-0">Сәлем, {{ current_user.username }}!</h2>
-  <div>
-    <a href="{{ url_for('main.workout_create') }}" class="btn btn-brand"><i class="bi bi-plus-lg"></i> Жоспар</a>
-    <a href="{{ url_for('main.log_create') }}" class="btn btn-outline-brand"><i class="bi bi-journal-plus"></i> Жазба</a>
+<section class="photo-banner p-4 p-md-5 mb-4" style="background-image:url('{{ url_for('static', filename='img/default.jpg') }}')">
+  <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+      <div class="eyebrow" style="color:#6ee7b7">{{ WEEKDAYS[today.weekday()] }}, {{ today.strftime('%d.%m.%Y') }}</div>
+      <h1 class="mb-1">{{ _('Сәлем') }}, {{ current_user.username }}! 👋</h1>
+      <p class="lead mb-0">{{ _('Бүгін жаңа рекорд орнатуға жақсы күн.') }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('main.workout_create') }}" class="btn btn-brand"><i class="bi bi-plus-lg"></i> {{ _('Жоспар') }}</a>
+      <a href="{{ url_for('main.log_create') }}" class="btn btn-light"><i class="bi bi-journal-plus"></i> {{ _('Жазба') }}</a>
+    </div>
   </div>
-</div>
+</section>
 
 <div class="row g-3 mb-4">
-  {% for label, value, icon in [('Жоспарлар', stats.workouts, 'clipboard-check'), ('Журнал жазбалары', stats.logs, 'journal-text'),
-                                ('Соңғы 7 күн', stats.week_logs, 'graph-up'), ('Жалпы минут', stats.minutes, 'stopwatch')] %}
+  {% for label, value, icon, c in [(_('Жоспарлар'), stats.workouts, 'clipboard2-pulse', 'c1'), (_('Журнал жазбалары'), stats.logs, 'journal-check', 'c2'),
+                                   (_('Соңғы 7 күн'), stats.week_logs, 'graph-up-arrow', 'c3'), (_('Жалпы минут'), stats.minutes, 'stopwatch', 'c4')] %}
   <div class="col-6 col-lg-3">
-    <div class="card stat-card border-0 shadow-sm"><div class="card-body">
-      <i class="bi bi-{{ icon }}"></i>
-      <div class="stat-value">{{ value }}</div><div class="text-muted small">{{ label }}</div>
-    </div></div>
+    <div class="card-soft stat-tile">
+      <div class="stat-icon {{ c }}"><i class="bi bi-{{ icon }}"></i></div>
+      <div><div class="stat-value">{{ value }}</div><div class="stat-label">{{ label }}</div></div>
+    </div>
   </div>
   {% endfor %}
 </div>
 
 <div class="row g-4">
-  <div class="col-lg-6">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-header bg-white fw-semibold">Алдағы жоспарлар</div>
-      <ul class="list-group list-group-flush">
-        {% for w in upcoming %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div><a href="{{ url_for('main.workout_detail', workout_id=w.id) }}">{{ w.title }}</a>
-            <div class="small text-muted">{{ w.scheduled_date.strftime('%d.%m.%Y') }} · {{ w.duration_min }} мин</div></div>
-          {{ difficulty_badge(w) }}
-        </li>
-        {% else %}
-        <li class="list-group-item text-muted">Алдағы жоспар жоқ.</li>
-        {% endfor %}
-      </ul>
+  <div class="col-lg-7">
+    <div class="card-soft mb-4">
+      <div class="card-header d-flex justify-content-between">
+        <span class="section-title"><i class="bi bi-bar-chart-fill text-grad"></i> {{ _('Апталық белсенділік') }}</span>
+        <span class="text-muted small">{{ _('минут') }}</span>
+      </div>
+      <div class="p-3 px-4">
+        <div class="activity">
+          {% for d, minutes, pct in activity %}
+          <div class="col-bar {{ 'today' if d == today }}" title="{{ d.strftime('%d.%m') }}: {{ minutes }} {{ _('мин') }}">
+            <span class="val">{{ minutes or '' }}</span>
+            <div class="bar {{ 'zero' if not minutes }}" style="height: {{ [pct, 4]|max }}%"></div>
+            <span class="day">{{ WEEKDAYS_SHORT[d.weekday()] }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card-soft">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="section-title"><i class="bi bi-calendar-event"></i> {{ _('Алдағы жоспарлар') }}</span>
+        <a href="{{ url_for('main.calendar_view') }}" class="small fw-semibold">{{ _('Күнтізбе') }} <i class="bi bi-arrow-right"></i></a>
+      </div>
+      {% for w in upcoming %}
+      <a href="{{ url_for('main.workout_detail', workout_id=w.id) }}" class="list-row text-reset">
+        <img src="{{ w.cover_url }}" class="thumb" alt="">
+        <div class="flex-fill">
+          <div class="fw-bold">{{ w.title }}</div>
+          <div class="small text-muted"><i class="bi bi-calendar3"></i> {{ w.scheduled_date.strftime('%d.%m.%Y') }} · <i class="bi bi-stopwatch"></i> {{ w.duration_min }} {{ _('мин') }}</div>
+        </div>
+        {{ difficulty_badge(w) }}
+      </a>
+      {% else %}
+      <div class="empty-state"><i class="bi bi-calendar-x"></i><p class="mt-2 mb-0">{{ _('Алдағы жоспар жоқ.') }}</p></div>
+      {% endfor %}
     </div>
   </div>
-  <div class="col-lg-6">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-header bg-white fw-semibold">Соңғы жазбалар</div>
-      <ul class="list-group list-group-flush">
-        {% for lg in recent_logs %}
-        <li class="list-group-item">
-          <strong>{{ lg.exercise.name if lg.exercise else lg.workout.title }}</strong>
-          <span class="small text-muted">· {{ lg.date.strftime('%d.%m.%Y') }}</span>
-          <div class="small">
-            {% if lg.sets %}{{ lg.sets }}×{{ lg.reps or '-' }}{% endif %}
-            {% if lg.weight_kg %} · {{ lg.weight_kg|round(1) }} кг{% endif %}
-            {% if lg.duration_min %} · {{ lg.duration_min }} мин{% endif %}
-          </div>
-        </li>
-        {% else %}
-        <li class="list-group-item text-muted">Жазба әлі жоқ.</li>
-        {% endfor %}
-      </ul>
+
+  <div class="col-lg-5">
+    <div class="card-soft h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="section-title"><i class="bi bi-clock-history"></i> {{ _('Соңғы жазбалар') }}</span>
+        <a href="{{ url_for('main.logs') }}" class="small fw-semibold">{{ _('Барлығы') }} <i class="bi bi-arrow-right"></i></a>
+      </div>
+      {% for lg in recent_logs %}
+      <div class="list-row">
+        <img src="{{ lg.exercise.image_url if lg.exercise else lg.workout.cover_url }}" class="thumb thumb-sm" alt="">
+        <div class="flex-fill">
+          <div class="fw-semibold">{{ lg.exercise.name if lg.exercise else lg.workout.title }}</div>
+          <div class="small text-muted">{{ log_summary(lg) }}</div>
+        </div>
+        <span class="chip">{{ lg.date.strftime('%d.%m') }}</span>
+      </div>
+      {% else %}
+      <div class="empty-state"><i class="bi bi-journal"></i><p class="mt-2 mb-0">{{ _('Жазба әлі жоқ.') }}</p></div>
+      {% endfor %}
     </div>
   </div>
 </div>

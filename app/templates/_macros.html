@@ -3,8 +3,6 @@
   {{ f.label(class='form-label fw-semibold') }}
   {% if f.type == 'SelectField' %}
     {{ f(class='form-select' + (' is-invalid' if f.errors else '')) }}
-  {% elif f.type == 'FileField' %}
-    {{ f(class='form-control' + (' is-invalid' if f.errors else '')) }}
   {% elif f.type == 'TextAreaField' %}
     {{ f(class='form-control' + (' is-invalid' if f.errors else ''), rows=3) }}
   {% else %}
@@ -19,7 +17,7 @@
 <nav class="mt-4">
   <ul class="pagination justify-content-center">
     <li class="page-item {{ 'disabled' if not p.has_prev }}">
-      <a class="page-link" href="{{ url_for(endpoint, page=p.prev_num, **kwargs) if p.has_prev else '#' }}">&laquo;</a>
+      <a class="page-link" href="{{ url_for(endpoint, page=p.prev_num, **kwargs) if p.has_prev else '#' }}"><i class="bi bi-chevron-left"></i></a>
     </li>
     {% for n in p.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
       {% if n %}
@@ -29,21 +27,37 @@
       {% endif %}
     {% endfor %}
     <li class="page-item {{ 'disabled' if not p.has_next }}">
-      <a class="page-link" href="{{ url_for(endpoint, page=p.next_num, **kwargs) if p.has_next else '#' }}">&raquo;</a>
+      <a class="page-link" href="{{ url_for(endpoint, page=p.next_num, **kwargs) if p.has_next else '#' }}"><i class="bi bi-chevron-right"></i></a>
     </li>
   </ul>
-  <p class="text-center text-muted small">Барлығы: {{ p.total }} · {{ p.page }}/{{ p.pages }} бет</p>
+  <p class="text-center text-muted small">{{ _('Барлығы') }}: {{ p.total }} · {{ p.page }}/{{ p.pages }} {{ _('бет') }}</p>
 </nav>
 {% endif %}
 {% endmacro %}
 
-{% macro delete_button(action, label='Өшіру', small=True) %}
-<form method="post" action="{{ action }}" class="d-inline" onsubmit="return confirm('Шынымен өшіресіз бе?');">
+{% macro delete_button(action, label='', small=True) %}
+<form method="post" action="{{ action }}" class="d-inline" onsubmit="return confirm('{{ _('Шынымен өшіресіз бе?') }}');">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <button class="btn btn-outline-danger {{ 'btn-sm' if small }}"><i class="bi bi-trash"></i> {{ label }}</button>
+  <button class="btn btn-ghost text-danger {{ 'btn-sm' if small }} {{ 'btn-icon' if not label }}" title="{{ _('Өшіру') }}"><i class="bi bi-trash3"></i>{% if label %} {{ label }}{% endif %}</button>
 </form>
 {% endmacro %}
 
 {% macro difficulty_badge(w) %}
 <span class="badge diff-{{ w.difficulty }}">{{ w.difficulty_label }}</span>
+{% endmacro %}
+
+{% macro log_summary(lg) -%}
+{%- set parts = [(lg.sets ~ '×' ~ (lg.reps or '-')) if lg.sets, (lg.weight_kg|round(1) ~ ' ' ~ _('кг')) if lg.weight_kg, (lg.duration_min ~ ' ' ~ _('мин')) if lg.duration_min]|select|list -%}
+{{ parts|join(' · ') }}
+{%- endmacro %}
+
+{% macro page_head(eyebrow, title, subtitle='') %}
+<div class="page-head">
+  <div>
+    {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+    <h1>{{ title }}</h1>
+    {% if subtitle %}<p>{{ subtitle }}</p>{% endif %}
+  </div>
+  {% if caller %}<div class="d-flex gap-2 flex-wrap">{{ caller() }}</div>{% endif %}
+</div>
 {% endmacro %}

@@ -3,9 +3,13 @@
 **Нұсқа 9** · Flask веб-қосымшасы: жаттығу жоспарларын құру, орындалған жаттығуларды журналға жазу
 және оларды күнтізбе (тізім) түрінде көру.
 
-**Автор:** Иманбек
+**Автор:** Иманбек · **Тілдер:** қазақша / русский
 
-![Басты бет](screenshots/02_dashboard.jpg)
+![Басты бет](screenshots/01_home_kk.jpg)
+
+> 🇷🇺 **Кратко на русском:** Fitness Planner — Flask-приложение для планирования тренировок, ведения журнала
+> и просмотра календаря. Интерфейс доступен на казахском и русском языках (переключатель ҚАЗ/РУС в шапке).
+> Установка и запуск описаны ниже; тестовые аккаунты: `admin / admin123`, `user / user123`.
 
 ---
 
@@ -18,7 +22,9 @@
 | ORM / ДҚ | Flask-SQLAlchemy, SQLite (PostgreSQL-ге ауысуға болады), Flask-Migrate |
 | Аутентификация | Flask-Login (session) |
 | Формалар / валидация | Flask-WTF, WTForms, email-validator, CSRF қорғау |
-| Шаблондар | Jinja2, Bootstrap 5 |
+| Шаблондар / дизайн | Jinja2, Bootstrap 5, Bootstrap Icons, Inter шрифті, өз CSS (`app/static/css/style.css`) |
+| Көптілділік | Қазақша / орысша (`app/i18n.py`) |
+| Суреттер | [Unsplash](https://unsplash.com) (Unsplash License) |
 | Тест | pytest |
 
 ## Талаптардың орындалуы
@@ -36,6 +42,7 @@
 | 9 | 404 / 500 custom бет | `app/templates/errors/` (сонымен қатар 403, 413) |
 | 10 | API (≥3 endpoint) | `app/api.py` — GET/POST/PUT/DELETE, төменде қараңыз |
 | 11 | README | осы файл |
+| ⭐ | Көптілділік | Қазақша / орысша интерфейс, навбардағы ҚАЗ/РУС ауыстырғышы, валидация хабарламалары да аударылады |
 | ⭐ | Ерекшелік: күнтізбе | `/calendar` — айлық тізім: әр күнге жоспарлар + орындалған жазбалар, ай бойынша ауысу, бос күндерді көрсету қосқышы |
 
 ## Жоба құрылымы
@@ -47,10 +54,11 @@
 │   ├── routes.py          # Blueprints: main, auth, admin
 │   ├── api.py             # REST API blueprint (/api)
 │   ├── forms.py           # WTForms формалары + валидация
+│   ├── i18n.py            # қазақша/орысша аударма (gettext, lazy_gettext)
 │   ├── utils.py           # admin_required, файл жүктеу
 │   ├── seed.py            # тест деректер
 │   ├── templates/         # Jinja2 шаблондары (auth, workouts, exercises, logs, admin, errors)
-│   └── static/            # css/, uploads/
+│   └── static/            # css/, img/ (Unsplash суреттері), uploads/
 ├── tests/test_app.py      # pytest тесттері
 ├── screenshots/
 ├── config.py
@@ -110,7 +118,7 @@ flask run            # немесе: python run.py
 pytest -v
 ```
 
-9 тест: тіркелу валидациясы, кіру, CRUD, іздеу/сүзгі/пагинация, файл тексеру, рөлдер (403), 404 беті, API.
+11 тест: тіркелу валидациясы, кіру, CRUD, іздеу/сүзгі/пагинация, файл тексеру, рөлдер (403), 404 беті, API, тіл ауыстыру, барлық мәтіндердің орысша аудармасы бар екенін тексеру.
 
 ## Тест аккаунттар
 
@@ -172,13 +180,31 @@ POST денесінің өрістері: `workout_id` (міндетті, int), 
 DATABASE_URL=postgresql://user:password@localhost:5432/fitness
 ```
 
+## Көптілділік (қазақша / русский)
+
+- Навбардағы **ҚАЗ / РУС** ауыстырғышы тілді `session` ішінде сақтайды (`/lang/kk`, `/lang/ru`).
+  Алғашқы кіруде браузер тілі ескеріледі, әдепкі тіл — қазақша.
+- Бастапқы мәтін қазақша жазылған, орысша аудармасы `app/i18n.py` ішіндегі `RU` сөздігінде.
+  Шаблондарда `{{ _('Мәтін') }}`, Python кодында `gettext` / `lazy_gettext` (формалар үшін) қолданылады.
+- Ай/апта күндерінің атаулары, flash хабарламалары, форма белгілері мен валидация қателері де аударылады.
+- Жаңа мәтін қосқанда оның аудармасын `RU` сөздігіне қосу керек — `test_all_template_strings_translated` тесті ұмытылған аударманы тауып береді.
+- Қолданушы енгізген деректер (жоспар атауы, жаттығу атауы) аударылмайды.
+
+## Суреттер
+
+Жаттығулар мен жоспарлардың мұқабалары бұлшықет тобына қарай автоматты таңдалады (`static/img/`).
+Жаттығуға немесе жоспарға өз суретіңізді жүктесеңіз, сол сурет көрсетіледі.
+Барлық фотосуреттер [Unsplash](https://unsplash.com) сайтынан, [Unsplash License](https://unsplash.com/license) бойынша тегін қолданылады —
+дереккөздер тізімі: [`app/static/img/CREDITS.md`](app/static/img/CREDITS.md).
+
 ## Скриншоттар
 
 | | |
 |---|---|
-| **Басты бет** ![](screenshots/01_home.jpg) | **Dashboard** ![](screenshots/02_dashboard.jpg) |
-| **Жоспарлар + пагинация** ![](screenshots/03_workouts_pagination.jpg) | **Іздеу / сүзгі / сорттау** ![](screenshots/04_search_filter.jpg) |
-| **Жоспар формасы (файл жүктеу)** ![](screenshots/05_workout_form.jpg) | **Жоспар беті** ![](screenshots/06_workout_detail.jpg) |
-| **Күнтізбе** ![](screenshots/07_calendar.jpg) | **Журнал** ![](screenshots/08_logs.jpg) |
-| **Жаттығулар (admin)** ![](screenshots/09_exercises_admin.jpg) | **Админ панель** ![](screenshots/10_admin_panel.jpg) |
-| **404 беті** ![](screenshots/11_error_404.jpg) | |
+| **Басты бет (қазақша)** ![](screenshots/01_home_kk.jpg) | **Главная (русский)** ![](screenshots/02_home_ru.jpg) |
+| **Кіру** ![](screenshots/03_login.jpg) | **Форма валидациясы (RU)** ![](screenshots/04_register_validation_ru.jpg) |
+| **Dashboard** ![](screenshots/05_dashboard.jpg) | **Жоспарлар + пагинация** ![](screenshots/06_workouts_pagination.jpg) |
+| **Іздеу / сүзгі / сорттау** ![](screenshots/07_search_filter_sort.jpg) | **Жоспар формасы (файл жүктеу)** ![](screenshots/08_workout_form_upload.jpg) |
+| **Жоспар беті** ![](screenshots/09_workout_detail.jpg) | **Күнтізбе** ![](screenshots/10_calendar.jpg) |
+| **Журнал** ![](screenshots/11_logs.jpg) | **Жаттығулар (admin, RU)** ![](screenshots/12_exercises_admin_ru.jpg) |
+| **Админ панель (RU)** ![](screenshots/13_admin_panel_ru.jpg) | **404 беті** ![](screenshots/14_error_404.jpg) |

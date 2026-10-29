@@ -22,6 +22,11 @@ def create_app(config_class=Config):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
     app.json.ensure_ascii = False  # API жауабында кириллица оқылатын болсын
+
+    from .i18n import gettext
+
+    app.jinja_env.globals["_"] = gettext
+    login_manager.localize_callback = gettext
     os.makedirs(app.instance_path, exist_ok=True)
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 

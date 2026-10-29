@@ -1,41 +1,40 @@
 {% extends "base.html" %}
-{% from "_macros.html" import delete_button %}
-{% block title %}Жаттығулар{% endblock %}
+{% from "_macros.html" import delete_button, page_head %}
+{% block title %}{{ _('Жаттығулар') }}{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="mb-0">Жаттығулар каталогы</h2>
+{% call page_head(_('Каталог'), _('Жаттығулар каталогы'), _('Бұлшықет тобы бойынша сүзіңіз')) %}
   {% if current_user.is_admin %}
-  <a href="{{ url_for('main.exercise_create') }}" class="btn btn-brand"><i class="bi bi-plus-lg"></i> Жаттығу қосу</a>
+  <a href="{{ url_for('main.exercise_create') }}" class="btn btn-brand"><i class="bi bi-plus-lg"></i> {{ _('Жаттығу қосу') }}</a>
   {% endif %}
-</div>
+{% endcall %}
 
-<div class="mb-3 d-flex flex-wrap gap-1">
-  <a href="{{ url_for('main.exercises') }}" class="btn btn-sm {{ 'btn-brand' if not group else 'btn-outline-secondary' }}">Барлығы</a>
+<div class="pill-filter mb-4">
+  <a href="{{ url_for('main.exercises') }}" class="{{ 'active' if not group }}">{{ _('Барлығы') }}</a>
   {% for g in groups %}
-  <a href="{{ url_for('main.exercises', group=g) }}" class="btn btn-sm {{ 'btn-brand' if g == group else 'btn-outline-secondary' }}">{{ g }}</a>
+  <a href="{{ url_for('main.exercises', group=g) }}" class="{{ 'active' if g == group }}">{{ _(g) }}</a>
   {% endfor %}
 </div>
 
-<div class="row g-3">
+<div class="row g-4">
   {% for e in exercises %}
-  <div class="col-md-6 col-lg-4">
-    <div class="card h-100 border-0 shadow-sm">
-      {% if e.image %}<img src="{{ url_for('static', filename='uploads/' ~ e.image) }}" class="card-img-top ex-img" alt="{{ e.name }}">{% endif %}
-      <div class="card-body">
-        <span class="badge bg-secondary">{{ e.muscle_group }}</span>
-        <h5 class="mt-2">{{ e.name }}</h5>
+  <div class="col-sm-6 col-lg-4 col-xl-3">
+    <div class="photo-card">
+      <div class="cover"><img src="{{ e.image_url }}" alt="{{ e.name }}" loading="lazy">
+        <div class="top"><span class="chip chip-dark">{{ _(e.muscle_group) }}</span></div></div>
+      <div class="body">
+        <h5>{{ e.name }}</h5>
         <p class="small text-muted mb-0">{{ e.description or '' }}</p>
       </div>
       {% if current_user.is_admin %}
-      <div class="card-footer bg-white border-0 d-flex gap-1">
-        <a href="{{ url_for('main.exercise_edit', exercise_id=e.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Өңдеу</a>
+      <div class="footer">
+        <a href="{{ url_for('main.exercise_edit', exercise_id=e.id) }}" class="btn btn-sm btn-ghost"><i class="bi bi-pencil"></i> {{ _('Өңдеу') }}</a>
         {{ delete_button(url_for('main.exercise_delete', exercise_id=e.id)) }}
       </div>
       {% endif %}
     </div>
   </div>
   {% else %}
-  <div class="col-12"><div class="alert alert-light border">Жаттығу жоқ.</div></div>
+  <div class="col-12"><div class="card-soft empty-state"><i class="bi bi-person-arms-up"></i><p class="mt-2 mb-0">{{ _('Жаттығу жоқ.') }}</p></div></div>
   {% endfor %}
 </div>
 {% endblock %}

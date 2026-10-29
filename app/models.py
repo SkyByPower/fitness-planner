@@ -1,9 +1,26 @@
 from datetime import date, datetime
 
+from flask import url_for
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db, login_manager
+from .i18n import lazy_gettext as _l
+
+# Бұлшықет топтары және олардың әдепкі суреттері (static/img)
+MUSCLE_IMAGES = {
+    "Кеуде": "chest", "Арқа": "back", "Аяқ": "legs", "Иық": "shoulders",
+    "Қол": "arms", "Іш": "core", "Кардио": "cardio", "Бүкіл дене": "fullbody",
+}
+MUSCLE_GROUPS = list(MUSCLE_IMAGES)
+
+
+def _upload_url(filename):
+    return url_for("static", filename="uploads/" + filename)
+
+
+def _group_image_url(group):
+    return url_for("static", filename=f"img/{MUSCLE_IMAGES.get(group, 'default')}.jpg")
 
 # Көп–көп байланыс: бір жаттығу жоспарында көп жаттығу, бір жаттығу көп жоспарда
 workout_exercises = db.Table(
@@ -53,6 +70,10 @@ class Exercise(db.Model):
 
     logs = db.relationship("Log", backref="exercise", lazy="dynamic")
 
+    @property
+    def image_url(self):
+        return _upload_url(self.image) if self.image else _group_image_url(self.muscle_group)
+
     def to_dict(self):
         return {"id": self.id, "name": self.name, "muscle_group": self.muscle_group}
 
@@ -60,7 +81,7 @@ class Exercise(db.Model):
 class Workout(db.Model):
     __tablename__ = "workouts"
 
-    DIFFICULTIES = [("easy", "Жеңіл"), ("medium", "Орташа"), ("hard", "Қиын")]
+    DIFFICULTIES = [("easy", _l("Жеңіл")), ("medium", _l("Орташа")), ("hard", _l("Қиын"))]
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
@@ -82,6 +103,18 @@ class Workout(db.Model):
     @property
     def attachment_is_pdf(self):
         return bool(self.attachment) and self.attachment.lower().endswith(".pdf")
+
+    @property
+    def cover_url(self):
+        """Мұқаба: жүктелген сурет → бірінші жаттығудың суреті → әдепкі сурет."""
+        if self.attachment and not self.attachment_is_pdf:
+            return _upload_url(self.attachment)
+        if self.exercises:
+            # Жиі кездесетін бұлшықет тобы (тең болса — соңғысы)
+            groups = [e.muscle_group for e in sorted(self.exercises, key=lambda e: e.id)]
+            top = max(reversed(groups), key=groups.count)
+            return _group_image_url(top)
+        return url_for("static", filename="img/default.jpg")
 
     def to_dict(self):
         return {

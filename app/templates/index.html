@@ -1,23 +1,42 @@
 {% extends "base.html" %}
-{% block title %}Басты бет{% endblock %}
+{% block title %}{{ _('Басты бет') }}{% endblock %}
 {% block content %}
-<div class="hero rounded-4 p-5 mb-4 text-white">
-  <h1 class="display-5 fw-bold">Жаттығуларыңызды жоспарлаңыз</h1>
-  <p class="lead col-lg-8">Fitness Planner — жаттығу жоспарларын құруға, орындалған жаттығуларды журналға жазуға
-    және прогресті күнтізбе арқылы бақылауға арналған қосымша.</p>
-  <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg me-2">Тіркелу</a>
-  <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg">Кіру</a>
+<section class="photo-banner hero mb-5" style="background-image:url('{{ url_for('static', filename='img/hero.jpg') }}')">
+  <div class="p-4 p-md-5 col-lg-8">
+    <span class="chip chip-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning"></i> {{ _('Жаттығуды жоспарла · Орында · Бақыла') }}</span>
+    <h1 class="mb-3">{{ _('Мықты денеге') }}<br><span class="text-grad">{{ _('жүйелі жоспар') }}</span></h1>
+    <p class="lead mb-4">{{ _('Fitness Planner — жаттығу жоспарларын құруға, орындалған жаттығуларды журналға жазуға және прогресті күнтізбе арқылы бақылауға арналған қосымша.') }}</p>
+    <div class="d-flex gap-2 flex-wrap mb-5">
+      <a href="{{ url_for('auth.register') }}" class="btn btn-brand btn-lg px-4">{{ _('Тегін бастау') }} <i class="bi bi-arrow-right"></i></a>
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4">{{ _('Кіру') }}</a>
+    </div>
+    <div class="hero-stats">
+      <div><strong>8</strong><span>{{ _('бұлшықет тобы') }}</span></div>
+      <div><strong>11+</strong><span>{{ _('жаттығу каталогта') }}</span></div>
+      <div><strong>24/7</strong><span>{{ _('прогресс бақылауы') }}</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="text-center mb-4">
+  <div class="eyebrow">{{ _('Мүмкіндіктер') }}</div>
+  <h2 class="mt-1">{{ _('Барлығы бір жерде') }}</h2>
 </div>
 <div class="row g-4">
-  {% for icon, title, text in [
-    ('clipboard-check', 'Жоспарлар', 'Күн, ұзақтық, күрделілік және жаттығулар тізімі бар жоспарлар.'),
-    ('journal-text', 'Журнал', 'Сет, қайталау, салмақ және уақытты жазып отырыңыз.'),
-    ('calendar3', 'Күнтізбе', 'Айлық көріністе жоспарлар мен орындалған жаттығулар.')] %}
+  {% for img, icon, title, text in [
+    ('chest', 'clipboard2-pulse', _('Жоспарлар'), _('Күн, ұзақтық, күрделілік және жаттығулар тізімі бар жоспарлар.')),
+    ('legs', 'journal-check', _('Журнал'), _('Сет, қайталау, салмақ және уақытты жазып отырыңыз.')),
+    ('cardio', 'calendar3', _('Күнтізбе'), _('Айлық көріністе жоспарлар мен орындалған жаттығулар.'))] %}
   <div class="col-md-4">
-    <div class="card h-100 shadow-sm border-0"><div class="card-body">
-      <i class="bi bi-{{ icon }} fs-2 text-brand"></i>
-      <h5 class="mt-2">{{ title }}</h5><p class="text-muted mb-0">{{ text }}</p>
-    </div></div>
+    <div class="feature-card">
+      <div class="img" style="background-image:url('{{ url_for('static', filename='img/' ~ img ~ '.jpg') }}')">
+        <div class="icon"><i class="bi bi-{{ icon }}"></i></div>
+      </div>
+      <div class="body">
+        <h5>{{ title }}</h5>
+        <p class="text-muted mb-0">{{ text }}</p>
+      </div>
+    </div>
   </div>
   {% endfor %}
 </div>
