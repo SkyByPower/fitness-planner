@@ -1,0 +1,41 @@
+:root {
+  --brand: #0f766e;
+  --brand-dark: #115e59;
+  --bg: #f4f6f8;
+}
+
+body { background: var(--bg); }
+
+.bg-brand { background: var(--brand); }
+.text-brand { color: var(--brand); }
+.btn-brand { background: var(--brand); color: #fff; border-color: var(--brand); }
+.btn-brand:hover, .btn-brand:focus { background: var(--brand-dark); color: #fff; }
+.btn-outline-brand { color: var(--brand); border-color: var(--brand); }
+.btn-outline-brand:hover { background: var(--brand); color: #fff; }
+a { color: var(--brand); }
+.page-item.active .page-link { background: var(--brand); border-color: var(--brand); }
+.page-link { color: var(--brand); }
+
+.hero { background: linear-gradient(135deg, #0f766e, #1e3a8a); }
+
+.stat-card i { font-size: 1.4rem; color: var(--brand); }
+.stat-value { font-size: 1.9rem; font-weight: 700; line-height: 1.2; }
+
+.diff-easy { background: #16a34a; }
+.diff-medium { background: #d97706; }
+.diff-hard { background: #dc2626; }
+
+.workout-card { transition: transform .15s, box-shadow .15s; }
+.workout-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important; }
+
+.exercise-checks { max-height: 220px; overflow-y: auto; columns: 2; }
+@media (max-width: 576px) { .exercise-checks { columns: 1; } }
+
+.ex-img { height: 160px; object-fit: cover; }
+
+.cal-date { min-width: 80px; }
+.cal-num { font-size: 1.6rem; font-weight: 700; }
+.cal-today { border-left: 4px solid var(--brand) !important; }
+.cal-past { opacity: .85; }
+
+.error-code { font-size: 6rem; font-weight: 800; color: var(--brand); line-height: 1; }

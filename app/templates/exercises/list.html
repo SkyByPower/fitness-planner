@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_macros.html" import delete_button %}
+{% block title %}Жаттығулар{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Жаттығулар каталогы</h2>
+  {% if current_user.is_admin %}
+  <a href="{{ url_for('main.exercise_create') }}" class="btn btn-brand"><i class="bi bi-plus-lg"></i> Жаттығу қосу</a>
+  {% endif %}
+</div>
+
+<div class="mb-3 d-flex flex-wrap gap-1">
+  <a href="{{ url_for('main.exercises') }}" class="btn btn-sm {{ 'btn-brand' if not group else 'btn-outline-secondary' }}">Барлығы</a>
+  {% for g in groups %}
+  <a href="{{ url_for('main.exercises', group=g) }}" class="btn btn-sm {{ 'btn-brand' if g == group else 'btn-outline-secondary' }}">{{ g }}</a>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
+  {% for e in exercises %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 border-0 shadow-sm">
+      {% if e.image %}<img src="{{ url_for('static', filename='uploads/' ~ e.image) }}" class="card-img-top ex-img" alt="{{ e.name }}">{% endif %}
+      <div class="card-body">
+        <span class="badge bg-secondary">{{ e.muscle_group }}</span>
+        <h5 class="mt-2">{{ e.name }}</h5>
+        <p class="small text-muted mb-0">{{ e.description or '' }}</p>
+      </div>
+      {% if current_user.is_admin %}
+      <div class="card-footer bg-white border-0 d-flex gap-1">
+        <a href="{{ url_for('main.exercise_edit', exercise_id=e.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Өңдеу</a>
+        {{ delete_button(url_for('main.exercise_delete', exercise_id=e.id)) }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12"><div class="alert alert-light border">Жаттығу жоқ.</div></div>
+  {% endfor %}
+</div>
+{% endblock %}

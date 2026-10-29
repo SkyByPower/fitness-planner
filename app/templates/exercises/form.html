@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm"><div class="card-body p-4">
+      <h3 class="mb-3">{{ title }}</h3>
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {{ form.hidden_tag() }}
+        {{ field(form.name) }}
+        {{ field(form.muscle_group) }}
+        {{ field(form.description) }}
+        {{ field(form.image) }}
+        {% if exercise and exercise.image %}
+        <img src="{{ url_for('static', filename='uploads/' ~ exercise.image) }}" class="img-thumbnail mb-3" style="max-height:120px" alt="">
+        {% endif %}
+        {{ form.submit(class='btn btn-brand') }}
+        <a href="{{ url_for('main.exercises') }}" class="btn btn-outline-secondary">Бас тарту</a>
+      </form>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

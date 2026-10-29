@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "_macros.html" import delete_button, difficulty_badge %}
+{% block title %}{{ workout.title }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('main.workouts') }}" class="small"><i class="bi bi-arrow-left"></i> Жоспарлар</a>
+<div class="d-flex justify-content-between align-items-start mt-2 mb-3 flex-wrap gap-2">
+  <div>
+    <h2 class="mb-1">{{ workout.title }} {{ difficulty_badge(workout) }}</h2>
+    <div class="text-muted"><i class="bi bi-calendar-event"></i> {{ workout.scheduled_date.strftime('%d.%m.%Y') }}
+      · <i class="bi bi-stopwatch"></i> {{ workout.duration_min }} мин · <i class="bi bi-person"></i> {{ workout.owner.username }}</div>
+  </div>
+  <div class="d-flex gap-1">
+    <a href="{{ url_for('main.log_create', workout_id=workout.id) }}" class="btn btn-brand btn-sm"><i class="bi bi-journal-plus"></i> Журналға жазу</a>
+    <a href="{{ url_for('main.workout_edit', workout_id=workout.id) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Өңдеу</a>
+    {{ delete_button(url_for('main.workout_delete', workout_id=workout.id)) }}
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    {% if workout.description %}<p>{{ workout.description }}</p>{% endif %}
+    <h5>Жаттығулар</h5>
+    <ul class="list-group mb-4">
+      {% for e in workout.exercises %}
+      <li class="list-group-item d-flex justify-content-between"><span>{{ e.name }}</span><span class="badge bg-secondary">{{ e.muscle_group }}</span></li>
+      {% else %}<li class="list-group-item text-muted">Жаттығу таңдалмаған.</li>{% endfor %}
+    </ul>
+
+    <h5>Журнал ({{ logs|length }})</h5>
+    <table class="table table-sm align-middle">
+      <thead><tr><th>Күні</th><th>Жаттығу</th><th>Сет×Қайт.</th><th>Салмақ</th><th>Мин</th></tr></thead>
+      <tbody>
+        {% for lg in logs %}
+        <tr><td>{{ lg.date.strftime('%d.%m') }}</td><td>{{ lg.exercise.name if lg.exercise else '—' }}</td>
+          <td>{{ lg.sets or '-' }}×{{ lg.reps or '-' }}</td><td>{{ lg.weight_kg|round(1) if lg.weight_kg else '-' }}</td><td>{{ lg.duration_min or '-' }}</td></tr>
+        {% else %}<tr><td colspan="5" class="text-muted">Жазба жоқ.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="col-lg-5">
+    {% if workout.attachment %}
+    <div class="card border-0 shadow-sm"><div class="card-body">
+      <h6><i class="bi bi-paperclip"></i> Тіркелген файл</h6>
+      {% set url = url_for('static', filename='uploads/' ~ workout.attachment) %}
+      {% if workout.attachment_is_pdf %}
+        <a href="{{ url }}" target="_blank" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i> PDF ашу</a>
+      {% else %}
+        <img src="{{ url }}" class="img-fluid rounded" alt="{{ workout.title }}">
+      {% endif %}
+    </div></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

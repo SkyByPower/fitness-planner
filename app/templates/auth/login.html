@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+{% block title %}Кіру{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm border-0"><div class="card-body p-4">
+      <h3 class="mb-3">Жүйеге кіру</h3>
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        {{ field(form.username) }}
+        {{ field(form.password) }}
+        {{ form.submit(class='btn btn-brand w-100') }}
+      </form>
+      <p class="mt-3 mb-0 small text-center">Аккаунт жоқ па? <a href="{{ url_for('auth.register') }}">Тіркелу</a></p>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

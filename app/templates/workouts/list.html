@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pagination_nav, difficulty_badge %}
+{% block title %}Жоспарлар{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Жаттығу жоспарлары</h2>
+  <a href="{{ url_for('main.workout_create') }}" class="btn btn-brand"><i class="bi bi-plus-lg"></i> Жаңа жоспар</a>
+</div>
+
+<form class="card card-body border-0 shadow-sm mb-4" method="get">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-5">
+      <label class="form-label small">Іздеу</label>
+      <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Атауы немесе сипаттамасы…">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small">Күрделілігі</label>
+      <select name="difficulty" class="form-select">
+        <option value="">Барлығы</option>
+        {% for val, label in difficulties %}<option value="{{ val }}" {{ 'selected' if val == difficulty }}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small">Сорттау</label>
+      <select name="sort" class="form-select">
+        {% for val, label in [('date_desc', 'Жаңасы'), ('date_asc', 'Ескісі'), ('title', 'Атауы (А–Я)'), ('duration', 'Ұзақтығы')] %}
+        <option value="{{ val }}" {{ 'selected' if val == sort }}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-1">
+      <button class="btn btn-brand flex-fill"><i class="bi bi-search"></i></button>
+      <a href="{{ url_for('main.workouts') }}" class="btn btn-outline-secondary" title="Тазарту"><i class="bi bi-x-lg"></i></a>
+    </div>
+  </div>
+</form>
+
+<div class="row g-3">
+  {% for w in pagination.items %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 border-0 shadow-sm workout-card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <span class="small text-muted"><i class="bi bi-calendar-event"></i> {{ w.scheduled_date.strftime('%d.%m.%Y') }}</span>
+          {{ difficulty_badge(w) }}
+        </div>
+        <h5 class="mt-2"><a href="{{ url_for('main.workout_detail', workout_id=w.id) }}" class="stretched-link text-decoration-none">{{ w.title }}</a></h5>
+        <p class="text-muted small mb-2">{{ (w.description or '')|truncate(90) }}</p>
+        <div class="small"><i class="bi bi-stopwatch"></i> {{ w.duration_min }} мин · <i class="bi bi-list-check"></i> {{ w.exercises|length }} жаттығу
+          {% if current_user.is_admin %} · <i class="bi bi-person"></i> {{ w.owner.username }}{% endif %}
+          {% if w.attachment %} · <i class="bi bi-paperclip"></i>{% endif %}</div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12"><div class="alert alert-light border">Жоспар табылмады.</div></div>
+  {% endfor %}
+</div>
+
+{{ pagination_nav(pagination, 'main.workouts', q=q, difficulty=difficulty, sort=sort) }}
+{% endblock %}

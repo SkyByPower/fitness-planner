@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pagination_nav, delete_button %}
+{% block title %}Журнал{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Жаттығу журналы</h2>
+  <a href="{{ url_for('main.log_create') }}" class="btn btn-brand"><i class="bi bi-journal-plus"></i> Жаңа жазба</a>
+</div>
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr>
+        <th>Күні</th>{% if current_user.is_admin %}<th>Қолданушы</th>{% endif %}<th>Жоспар</th><th>Жаттығу</th>
+        <th>Сет×Қайт.</th><th>Салмақ</th><th>Мин</th><th>Ескертпе</th><th></th></tr></thead>
+      <tbody>
+      {% for lg in pagination.items %}
+        <tr>
+          <td class="text-nowrap">{{ lg.date.strftime('%d.%m.%Y') }}</td>
+          {% if current_user.is_admin %}<td>{{ lg.user.username }}</td>{% endif %}
+          <td><a href="{{ url_for('main.workout_detail', workout_id=lg.workout_id) }}">{{ lg.workout.title }}</a></td>
+          <td>{{ lg.exercise.name if lg.exercise else '—' }}</td>
+          <td>{{ lg.sets or '-' }}×{{ lg.reps or '-' }}</td>
+          <td>{{ lg.weight_kg|round(1) if lg.weight_kg else '-' }}</td>
+          <td>{{ lg.duration_min or '-' }}</td>
+          <td class="small text-muted">{{ lg.notes or '' }}</td>
+          <td class="text-nowrap">
+            <a href="{{ url_for('main.log_edit', log_id=lg.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+            {{ delete_button(url_for('main.log_delete', log_id=lg.id), label='') }}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="9" class="text-muted p-4 text-center">Журнал бос.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{ pagination_nav(pagination, 'main.logs') }}
+{% endblock %}

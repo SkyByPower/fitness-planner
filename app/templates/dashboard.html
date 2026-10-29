@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_macros.html" import difficulty_badge %}
+{% block title %}Басты{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <h2 class="mb-0">Сәлем, {{ current_user.username }}!</h2>
+  <div>
+    <a href="{{ url_for('main.workout_create') }}" class="btn btn-brand"><i class="bi bi-plus-lg"></i> Жоспар</a>
+    <a href="{{ url_for('main.log_create') }}" class="btn btn-outline-brand"><i class="bi bi-journal-plus"></i> Жазба</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% for label, value, icon in [('Жоспарлар', stats.workouts, 'clipboard-check'), ('Журнал жазбалары', stats.logs, 'journal-text'),
+                                ('Соңғы 7 күн', stats.week_logs, 'graph-up'), ('Жалпы минут', stats.minutes, 'stopwatch')] %}
+  <div class="col-6 col-lg-3">
+    <div class="card stat-card border-0 shadow-sm"><div class="card-body">
+      <i class="bi bi-{{ icon }}"></i>
+      <div class="stat-value">{{ value }}</div><div class="text-muted small">{{ label }}</div>
+    </div></div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Алдағы жоспарлар</div>
+      <ul class="list-group list-group-flush">
+        {% for w in upcoming %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div><a href="{{ url_for('main.workout_detail', workout_id=w.id) }}">{{ w.title }}</a>
+            <div class="small text-muted">{{ w.scheduled_date.strftime('%d.%m.%Y') }} · {{ w.duration_min }} мин</div></div>
+          {{ difficulty_badge(w) }}
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">Алдағы жоспар жоқ.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Соңғы жазбалар</div>
+      <ul class="list-group list-group-flush">
+        {% for lg in recent_logs %}
+        <li class="list-group-item">
+          <strong>{{ lg.exercise.name if lg.exercise else lg.workout.title }}</strong>
+          <span class="small text-muted">· {{ lg.date.strftime('%d.%m.%Y') }}</span>
+          <div class="small">
+            {% if lg.sets %}{{ lg.sets }}×{{ lg.reps or '-' }}{% endif %}
+            {% if lg.weight_kg %} · {{ lg.weight_kg|round(1) }} кг{% endif %}
+            {% if lg.duration_min %} · {{ lg.duration_min }} мин{% endif %}
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">Жазба әлі жоқ.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
