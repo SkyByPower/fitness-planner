@@ -11,6 +11,19 @@
 > и просмотра календаря. Интерфейс доступен на казахском и русском языках (переключатель ҚАЗ/РУС в шапке).
 > Установка и запуск описаны ниже; тестовые аккаунты: `admin / admin123`, `user / user123`.
 
+## 🌐 Онлайн демо (Render.com)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SkyByPower/fitness-planner)
+
+Жоба [Render](https://render.com) тегін тарифіне `render.yaml` арқылы орналастырылады:
+`gunicorn` сервері, кездейсоқ `SECRET_KEY`, әр іске қосылғанда `flask init-db && flask seed`.
+
+1. Render-ге GitHub арқылы кіріңіз → жоғарыдағы **Deploy to Render** батырмасын басыңыз.
+2. **Apply** басыңыз — 3–5 минуттан кейін сайт `https://fitness-planner-xxxx.onrender.com` мекенжайында ашылады.
+
+> ⚠️ Тегін тарифте: 15 минут белсенділік болмаса сервер «ұйықтайды» (бірінші ашылуы ~50 секунд),
+> ал қайта іске қосылғанда дерекқор тест деректерге қайтарылады.
+
 ---
 
 ## Технологиялар
